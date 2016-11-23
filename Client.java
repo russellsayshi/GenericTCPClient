@@ -48,6 +48,10 @@ public class Client {
             }
         }
         public void connect(String hostname, String portStr) {
+            if(clientSocket != null) {
+                System.err.println("Still connected to another socket. Closing...");
+                close();
+            }
             try {
                 int port = Integer.valueOf(portStr);
                 System.out.println("Connecting to " + hostname + ":" + portStr + "...");
