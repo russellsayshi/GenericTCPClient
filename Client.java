@@ -26,9 +26,12 @@ public class Client {
     
     private class Commands {
         public void help() {
+            System.out.println("<> = required, [] = optional");
             System.out.println("Try:");
             System.out.println("    connect <ip> <port>");
             System.out.println("    send <int/double/string/float/...> <value>");
+            System.out.println("    read <int/double/string/float/...> <value>");
+            System.out.println("    timeout [newValue]");
             System.out.println("    close");
         }
         public void close() {
@@ -49,6 +52,7 @@ public class Client {
                 int port = Integer.valueOf(portStr);
                 System.out.println("Connecting to " + hostname + ":" + portStr + "...");
                 clientSocket = new Socket(hostname, port);
+                clientSocket.setSoTimeout(200);
                 System.out.println("Socket established.");
                 output = new DataOutputStream(clientSocket.getOutputStream());
                 input = new DataInputStream(clientSocket.getInputStream());
@@ -61,7 +65,6 @@ public class Client {
         public void send(String type, String data) {
             try {
                 if(type.equalsIgnoreCase("string")) {
-                    System.out.println("Sending UTF-8 string...");
                     output.writeUTF(data);
                 } else if(type.equalsIgnoreCase("float")) {
                     output.writeFloat(Float.valueOf(data));
@@ -78,18 +81,69 @@ public class Client {
                 } else if(type.equalsIgnoreCase("char")) {
                     if(data.length() != 0) {
                         System.err.println("Chars should be 1 character.");
+                        return;
                     } else {
                         output.writeChar(data.charAt(0));
                     }
                 } else {
                     System.err.println("Unrecognized data type: " + type);
+                    return;
                 }
+                System.out.println("Sent '" + data + "'.");
             } catch(NumberFormatException nfe) {
                 System.err.println("Number format exception.");
             } catch(IOException ioe) {
                 System.err.println(ioe.getMessage());
             } catch(NullPointerException npe) {
                 System.err.println("Null pointer exception. Are you connected to a server?");
+            }
+        }
+        public void read(String type) {
+            try {
+                if(type.equalsIgnoreCase("string")) {
+                    System.out.println("Read: " + input.readUTF());
+                } else if(type.equalsIgnoreCase("float")) {
+                    System.out.println("Read: " + input.readFloat());
+                } else if(type.equalsIgnoreCase("int")) {
+                    System.out.println("Read: " + input.readInt());
+                } else if(type.equalsIgnoreCase("long")) {
+                    System.out.println("Read: " + input.readLong());
+                } else if(type.equalsIgnoreCase("byte")) {
+                    System.out.println("Read: " + input.readByte());
+                } else if(type.equalsIgnoreCase("double")) {
+                    System.out.println("Read: " + input.readDouble());
+                } else if(type.equalsIgnoreCase("boolean")) {
+                    System.out.println("Read: " + input.readBoolean());
+                } else if(type.equalsIgnoreCase("char")) {
+                    System.out.println("Read: " + input.readChar());
+                } else {
+                    System.err.println("Unrecognized data type: " + type);
+                }
+            } catch(IOException ioe) {
+                System.err.println(ioe.getMessage());
+            } catch(NullPointerException npe) {
+                System.err.println("Null pointer exception. Are you connected to a server?");
+            }
+        }
+        public void timeout() {
+            try {
+                System.out.println("SO_TIMEOUT is "+ clientSocket.getSoTimeout());
+            } catch(NullPointerException npe) {
+                System.err.println("Connect to a socket first.");
+            } catch(SocketException se) {
+                System.err.println("Socket exception: " + se.getMessage());
+            }
+        }
+        public void setTimeout(String timeout) {
+            try {
+                clientSocket.setSoTimeout(Integer.valueOf(timeout));
+                System.out.println("Timeout set to '" + timeout + "'.");
+            } catch(NullPointerException npe) {
+                System.err.println("Connect to a socket first.");
+            } catch(NumberFormatException nfe) {
+                System.err.println("Not a valid integer.");
+            } catch(SocketException se) {
+                System.err.println("Socket exception: " + se.getMessage());
             }
         }
     }
@@ -162,6 +216,20 @@ public class Client {
                 String type = rawArgs.substring(0, loc);
                 String data = rawArgs.substring(loc+1);
                 commands.send(type, data);
+            } else if(command.equalsIgnoreCase("read")) {
+                if(expectArguments(args, 1)) {
+                    commands.read(args[0]);
+                }
+            } else if(command.equalsIgnoreCase("timeout")) {
+                if(hasArguments(args, 0)) {
+                    //no args
+                    commands.timeout();
+                } else if(hasArguments(args, 1)) {
+                    //1 arg
+                    commands.setTimeout(args[0]);
+                } else {
+                    System.err.println("Expected 0 arguments to read timeout value, 1 argument to set timeout value.");
+                }
             } else {
                 System.err.println("Unknown command: " + command);
             }
