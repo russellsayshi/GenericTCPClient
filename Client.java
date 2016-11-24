@@ -7,6 +7,8 @@ public class Client {
     private DataInputStream input;
     private DataOutputStream output;
     private Commands commands;
+    private static final int PING_TIMEOUT = 1500;
+    private static final int DEFAULT_READ_TIMEOUT = 200;
     public static void main(String[] args) {
         new Client();
     }
@@ -32,6 +34,8 @@ public class Client {
             System.out.println("    send <int/double/string/float/...> <value>");
             System.out.println("    read <int/double/string/float/...> <value>");
             System.out.println("    timeout [newValue]");
+            System.out.println("    status");
+            System.out.println("    ping");
             System.out.println("    close");
         }
         public void close() {
@@ -56,7 +60,7 @@ public class Client {
                 int port = Integer.valueOf(portStr);
                 System.out.println("Connecting to " + hostname + ":" + portStr + "...");
                 clientSocket = new Socket(hostname, port);
-                clientSocket.setSoTimeout(200);
+                clientSocket.setSoTimeout(DEFAULT_READ_TIMEOUT);
                 System.out.println("Socket established.");
                 output = new DataOutputStream(clientSocket.getOutputStream());
                 input = new DataInputStream(clientSocket.getInputStream());
@@ -127,6 +131,26 @@ public class Client {
                 System.err.println(ioe.getMessage());
             } catch(NullPointerException npe) {
                 System.err.println("Null pointer exception. Are you connected to a server?");
+            }
+        }
+        public void status() {
+            if(clientSocket == null) {
+                System.err.println("Not connected.");
+                return;
+            }
+            System.out.println("Connected: " + clientSocket.isConnected());
+            System.out.println("Address: " + clientSocket.getInetAddress());
+        }
+        public void ping() {
+            try {
+                System.out.println("Socket reachable: " +
+                    clientSocket.getInetAddress().isReachable(PING_TIMEOUT));
+            } catch(IOException ioe) {
+                System.err.println("IOException determining if socket reachable: " +
+                    ioe.getMessage());
+                System.err.println("Recommend closing socket.");
+            } catch(NullPointerException npe) {
+                System.err.println("Connect to a socket first.");
             }
         }
         public void timeout() {
@@ -233,6 +257,14 @@ public class Client {
                     commands.setTimeout(args[0]);
                 } else {
                     System.err.println("Expected 0 arguments to read timeout value, 1 argument to set timeout value.");
+                }
+            } else if(command.equalsIgnoreCase("status")) {
+                if(expectArguments(args, 0)) {
+                    commands.status();
+                }
+            } else if(command.equalsIgnoreCase("ping")) {
+                if(expectArguments(args, 0)) {
+                    commands.ping();
                 }
             } else {
                 System.err.println("Unknown command: " + command);
