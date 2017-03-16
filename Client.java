@@ -31,8 +31,8 @@ public class Client {
             System.out.println("<> = required, [] = optional");
             System.out.println("Try:");
             System.out.println("    connect <ip> <port>");
-            System.out.println("    send <int/double/string/float/...> <value>");
-            System.out.println("    read <int/double/string/float/...> <value>");
+            System.out.println("    send <int/double/utfstring/bytestring/float/...> <value>");
+            System.out.println("    read <int/double/utfstring/bytestring/float/...> <value>");
             System.out.println("    timeout [newValue]");
             System.out.println("    status");
             System.out.println("    ping");
@@ -72,7 +72,7 @@ public class Client {
         }
         public void send(String type, String data) {
             try {
-                if(type.equalsIgnoreCase("string")) {
+                if(type.equalsIgnoreCase("utfstring")) {
                     output.writeUTF(data);
                 } else if(type.equalsIgnoreCase("float")) {
                     output.writeFloat(Float.valueOf(data));
@@ -82,6 +82,11 @@ public class Client {
                     output.writeLong(Long.valueOf(data));
                 } else if(type.equalsIgnoreCase("byte")) {
                     output.writeByte(Byte.valueOf(data));
+                } else if(type.equalsIgnoreCase("bytestring")) {
+                    for(int i = 0; i < data.length(); i++) {
+                        output.writeByte((byte)data.charAt(i));
+                    }
+                    output.writeByte(0);
                 } else if(type.equalsIgnoreCase("double")) {
                     output.writeDouble(Double.valueOf(data));
                 } else if(type.equalsIgnoreCase("boolean")) {
@@ -108,7 +113,7 @@ public class Client {
         }
         public void read(String type) {
             try {
-                if(type.equalsIgnoreCase("string")) {
+                if(type.equalsIgnoreCase("utfstring")) {
                     System.out.println("Read: " + input.readUTF());
                 } else if(type.equalsIgnoreCase("float")) {
                     System.out.println("Read: " + input.readFloat());
@@ -118,6 +123,14 @@ public class Client {
                     System.out.println("Read: " + input.readLong());
                 } else if(type.equalsIgnoreCase("byte")) {
                     System.out.println("Read: " + input.readByte());
+                } else if(type.equalsIgnoreCase("bytestring")) {
+                    System.out.print("Read: ");
+                    while(true) {
+                        byte next = input.readByte();
+                        if(next == 0) break;
+                        System.out.print((char)next);
+                    }
+                    System.out.println();
                 } else if(type.equalsIgnoreCase("double")) {
                     System.out.println("Read: " + input.readDouble());
                 } else if(type.equalsIgnoreCase("boolean")) {
