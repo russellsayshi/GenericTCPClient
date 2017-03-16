@@ -131,11 +131,24 @@ public class Client {
                 } else if(type.equalsIgnoreCase("byte")) {
                     System.out.println("Read: " + input.readByte());
                 } else if(type.equalsIgnoreCase("bytestring")) {
-                    System.out.print("Read: ");
-                    while(true) {
-                        byte next = input.readByte();
-                        if(next == 0) break;
-                        System.out.print((char)next);
+                    boolean hasRead = false;
+                    try {
+                        while(true) {
+                            byte next = input.readByte();
+                            if(next == 0) break;
+                            if(!hasRead) {
+                                //if this is our first byte,
+                                //print out the nice "Read: " text
+                                System.out.println("Read: ");
+                                hasRead = true;
+                            }
+                            System.out.print((char)next);
+                        }
+                    } catch(SocketTimeoutException ste) {
+                        //do nothing, because a timeout can signal
+                        //end of string, but let the user know
+                        System.out.println();
+                        System.out.print(ste.getMessage());
                     }
                     System.out.println();
                 } else if(type.equalsIgnoreCase("double")) {
