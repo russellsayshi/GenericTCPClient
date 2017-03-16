@@ -139,18 +139,20 @@ public class Client {
                             if(!hasRead) {
                                 //if this is our first byte,
                                 //print out the nice "Read: " text
-                                System.out.println("Read: ");
+                                System.out.print("Read: ");
                                 hasRead = true;
                             }
                             System.out.print((char)next);
                         }
+                        System.out.println();
                     } catch(SocketTimeoutException ste) {
                         //do nothing, because a timeout can signal
                         //end of string, but let the user know
-                        System.out.println();
-                        System.out.print(ste.getMessage());
+                        if(hasRead) System.out.println(); //we're in the
+                                                          //middle of the string
+                                                          //so start a new line
+                        System.out.println(ste.getMessage());
                     }
-                    System.out.println();
                 } else if(type.equalsIgnoreCase("double")) {
                     System.out.println("Read: " + input.readDouble());
                 } else if(type.equalsIgnoreCase("boolean")) {
