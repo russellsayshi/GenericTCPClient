@@ -87,7 +87,7 @@ public class Client {
                 } else if(type.equalsIgnoreCase("boolean")) {
                     output.writeBoolean(Boolean.valueOf(data));
                 } else if(type.equalsIgnoreCase("char")) {
-                    if(data.length() != 0) {
+                    if(data.length() != 1) {
                         System.err.println("Chars should be 1 character.");
                         return;
                     } else {
