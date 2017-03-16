@@ -31,8 +31,8 @@ public class Client {
             System.out.println("<> = required, [] = optional");
             System.out.println("Try:");
             System.out.println("    connect <ip> <port>");
-            System.out.println("    send <int/double/utfstring/bytestring/float/...> <value>");
-            System.out.println("    read <int/double/utfstring/bytestring/float/...> <value>");
+            System.out.println("    send <int/double/utfstring/bytestring/float/char8/...> <value>");
+            System.out.println("    read <int/double/utfstring/bytestring/float/char8/...> <value>");
             System.out.println("    timeout [newValue]");
             System.out.println("    status");
             System.out.println("    ping");
@@ -91,12 +91,19 @@ public class Client {
                     output.writeDouble(Double.valueOf(data));
                 } else if(type.equalsIgnoreCase("boolean")) {
                     output.writeBoolean(Boolean.valueOf(data));
-                } else if(type.equalsIgnoreCase("char")) {
+                } else if(type.equalsIgnoreCase("char16")) {
                     if(data.length() != 1) {
                         System.err.println("Chars should be 1 character.");
                         return;
                     } else {
                         output.writeChar(data.charAt(0));
+                    }
+                } else if(type.equalsIgnoreCase("char8")) {
+                    if(data.length() != 1) {
+                        System.err.println("Chars should be 1 character.");
+                        return;
+                    } else {
+                        output.writeByte((byte)data.charAt(0));
                     }
                 } else {
                     System.err.println("Unrecognized data type: " + type);
@@ -135,8 +142,10 @@ public class Client {
                     System.out.println("Read: " + input.readDouble());
                 } else if(type.equalsIgnoreCase("boolean")) {
                     System.out.println("Read: " + input.readBoolean());
-                } else if(type.equalsIgnoreCase("char")) {
+                } else if(type.equalsIgnoreCase("char16")) {
                     System.out.println("Read: " + input.readChar());
+                } else if(type.equalsIgnoreCase("char8")) {
+                    System.out.println("Read: " + (char)input.readByte());
                 } else {
                     System.err.println("Unrecognized data type: " + type);
                 }
